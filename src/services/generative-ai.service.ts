@@ -1,8 +1,31 @@
-import { GenerativeModel, GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from '@google/generative-ai';
+import { GenerativeModel, GoogleGenerativeAI, HarmBlockThreshold, HarmCategory, SchemaType } from '@google/generative-ai';
 import dotenv from 'dotenv';
 dotenv.config();
 
-export interface settingConfigs {
+interface Schema {
+  description: string;
+  type: SchemaType;
+  items: {
+    type: SchemaType;
+    properties: {
+      [key: string]: {
+        type: SchemaType;
+        description: string;
+        nullable: boolean;
+      }
+    },
+    required: string[];
+  }
+}
+
+type ResponseConfigs = {
+  generationConfig: {
+    responseMimeType: string;
+    responseSchema: Schema;
+  }
+};
+
+type GenAIConfigs = {
   temperature: number;
   top_k: number;
   top_p: number;
@@ -12,7 +35,7 @@ export interface settingConfigs {
 export class GenerativeAiService {
   private genAI: GoogleGenerativeAI;
 
-  private genConfig = {
+  private config = {
     safetySettings: [
       {
         category: HarmCategory.HARM_CATEGORY_HARASSMENT,
@@ -26,23 +49,63 @@ export class GenerativeAiService {
 
   constructor() {
     this.genAI = new GoogleGenerativeAI(process.env.API_KEY!);
+    this.addSchema();
   }
 
   getGenModel(model: string): GenerativeModel {
     return this.genAI?.getGenerativeModel({
       model,
-      ...this.genConfig
+      ...this.config
     });
   }
 
-  setConfig(configs: settingConfigs) {
-    this.genConfig = {
-      ...this.genConfig,
+  setConfig(configs: GenAIConfigs | ResponseConfigs) {
+    this.config = {
+      ...this.config,
       ...configs,
     };
   }
 
+  getConfig() {
+    return this.config;
+  }
+
   resetConfig() {
-    this.genConfig = {...this.genConfig };
+    this.config = { ...this.config };
+  }
+
+  addSchema() {
+    const schema = {
+      description: '建議數個最佳武器放置位置與其原本格點值，達到最大化防禦效益，並提供判斷依據',
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.OBJECT,
+        properties: {
+          position: {
+            type: SchemaType.ARRAY,
+            description: '放置位置 [x, y]',
+            items: {
+              type: SchemaType.INTEGER
+            },
+            minItems: 2,
+            maxItems: 2,
+            nullable: false
+          },
+          description: {
+            type: SchemaType.STRING,
+            description: '判斷依據',
+            nullable: false
+          }
+        },
+        required: ['position', 'description']
+      }
+    };
+
+    this.setConfig({
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: schema
+      }
+    });
   }
 }

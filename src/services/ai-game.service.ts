@@ -5,6 +5,7 @@ export class AiGameService {
 
   constructor() {
     this.generativeAiService = new GenerativeAiService();
+    console.log('config', this.generativeAiService.getConfig());
   }
 
   async recommandWeaponPlacement(battleStatus: { mapGrid: number[][], enemies: string, weapons: string }): Promise<string> {
@@ -17,7 +18,10 @@ export class AiGameService {
       `- 地圖格點=${JSON.stringify(battleStatus.mapGrid)}`,
       `- 敵人位置=${battleStatus.enemies}(只能走在值為5的位置)`,
       `- 武器種類=${battleStatus.weapons}(只能放在值為8的位置)`,
-      '建議數個最佳武器放置位置與其原本格點值，達到最大化防禦效益，並提供判斷依據。'
+      // '建議數個最佳武器放置位置與其原本格點值，達到最大化防禦效益，並提供判斷依據。',
+      // '使用以下 JSON schema ：',
+      // 'Weapon = {"position": Array<number>}',
+      // 'Return: Array<Weapon>'
     ].join('\n');
     console.log(promptText);
 
