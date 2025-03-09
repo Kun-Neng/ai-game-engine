@@ -10,7 +10,8 @@ export class AiGameService {
 
   async recommandWeaponPlacement(battleStatus: { mapGrid: number[][], enemies: string, weapons: string }): Promise<string> {
     // const genModel = this.generativeAiService.getGenModel('gemini-pro');
-    const genModel = this.generativeAiService.getGenModel('gemini-1.5-pro');
+    // const genModel = this.generativeAiService.getGenModel('gemini-1.5-pro');
+    const genModel = this.generativeAiService.getGenModel('gemini-2.0-flash');
     this.generativeAiService.resetConfig();
 
     const promptText = [
